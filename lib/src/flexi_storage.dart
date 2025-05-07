@@ -13,7 +13,7 @@ import 'operations/document_batch_operation.dart';
 import 'utils/file_handler.dart';
 import 'utils/is_web_util.dart';
 
-/// The `SimpleStorage` class provides an abstraction for storing, retrieving,
+/// The `FlexiStorage` class provides an abstraction for storing, retrieving,
 /// and managing data in a simple key-value format. It is designed to be lightweight
 /// and easy to use, making it suitable for scenarios where a full database solution
 /// is not required.
@@ -25,18 +25,18 @@ import 'utils/is_web_util.dart';
 /// - Clear all stored data.
 ///
 /// ### Usage:
-/// To use this class, create an instance of `SimpleStorage` and call its methods
+/// To use this class, create an instance of `FlexiStorage` and call its methods
 /// to interact with the storage. Ensure that the storage backend (if any) is properly
 /// initialized before using this class.
 ///
 /// Provide a cache strategy in its constructor to manage in-memory caching.
-/// There's a default cache strategy that uses LRU (Least Recently Used) caching.
+/// There are ready-to-use cache strategies that can be used.
 /// If you want to use a different caching strategy, you can implement the
-/// `CacheStrategy` interface and pass it to the `SimpleStorage` constructor.
+/// `CacheStrategy` interface and pass it to the `FlexiStorage` constructor.
 ///
 /// ### Example:
 /// ```dart
-/// final storage = SimpleStorage();
+/// final storage = FlexiStorage();
 /// storage.save('key', 'value');
 /// final value = storage.get('key');
 /// print(value); // Outputs: value
@@ -48,8 +48,8 @@ import 'utils/is_web_util.dart';
 ///   objects, serialize them to a string format (e.g., JSON) or a Map before saving.
 /// - Ensure proper error handling when interacting with the storage to handle cases
 ///   like missing keys or storage failures.
-class SimpleStorage {
-  SimpleStorage({CacheStrategy<String, Map<String, dynamic>>? cacheStrategy}) : _documentsCache = cacheStrategy;
+class FlexiStorage {
+  FlexiStorage({CacheStrategy<String, Map<String, dynamic>>? cacheStrategy}) : _documentsCache = cacheStrategy;
 
   // Directory path where files will be stored
   String? _basePath;
@@ -183,7 +183,7 @@ class SimpleStorage {
     try {
       return doc[key] as T;
     } catch (e) {
-      debugPrint('SimpleStorage: Type mismatch for key $key in doc $docName');
+      debugPrint('FlexiStorage: Type mismatch for key $key in doc $docName');
       return null;
     }
   }
@@ -317,7 +317,7 @@ class SimpleStorage {
   ///
   /// Example:
   /// ```dart
-  /// await simpleStorage.batch(
+  /// await FlexiStorage.batch(
   ///   docName: 'exampleDoc',
   ///   operations: (batch) {
   ///     batch.put('key', 'value');
@@ -341,14 +341,14 @@ class SimpleStorage {
     });
   }
 
-  /// Checks if the SimpleStorage instance has been initialized.
+  /// Checks if the FlexiStorage instance has been initialized.
   ///
   /// Throws a [StateError] if the instance is not initialized.
   /// Ensure that the `init()` method is called before invoking
   /// any other methods that depend on initialization.
   void _checkInitialized() {
     if (!_isInitialized) {
-      throw StateError('SimpleStorage not initialized. Call init() first.');
+      throw StateError('FlexiStorage not initialized. Call init() first.');
     }
   }
 
@@ -395,7 +395,7 @@ class SimpleStorage {
           final decodedData = decodeDocument(docName, storedData, encryptionPassword);
           doc.addAll(jsonDecode(decodedData) as Map<String, dynamic>);
         } catch (e) {
-          debugPrint('SimpleStorage: Error loading doc $docName: $e');
+          debugPrint('FlexiStorage: Error loading doc $docName: $e');
         }
       }
     } else {
@@ -412,7 +412,7 @@ class SimpleStorage {
             doc.addAll(jsonDecode(decodedContents) as Map<String, dynamic>);
           }
         } catch (e) {
-          debugPrint('SimpleStorage: Error loading doc $docName: $e');
+          debugPrint('FlexiStorage: Error loading doc $docName: $e');
         }
       }
     }
@@ -511,7 +511,7 @@ class SimpleStorage {
       final encryptedData = data.substring(10);
       final parts = encryptedData.split(':');
       if (parts.length != 2) {
-        debugPrint('SimpleStorage: Invalid format for encrypted doc $docName');
+        debugPrint('FlexiStorage: Invalid format for encrypted doc $docName');
         return '{}';
       }
 
@@ -523,7 +523,7 @@ class SimpleStorage {
       try {
         return encrypter.decrypt(encrypted, iv: iv);
       } catch (e) {
-        debugPrint('SimpleStorage: Error decrypting doc $docName: $e');
+        debugPrint('FlexiStorage: Error decrypting doc $docName: $e');
         return '{}';
       }
     }

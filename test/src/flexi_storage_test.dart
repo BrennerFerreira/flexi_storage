@@ -4,15 +4,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
 import 'dart:io';
-import 'package:simple_storage/src/simple_storage.dart';
-import 'package:simple_storage/src/utils/file_handler.dart';
-import 'package:simple_storage/src/utils/is_web_util.dart';
+import 'package:flexi_storage/src/flexi_storage.dart';
+import 'package:flexi_storage/src/utils/file_handler.dart';
+import 'package:flexi_storage/src/utils/is_web_util.dart';
 
-import 'simple_storage_test.mocks.dart';
+import 'flexi_storage_test.mocks.dart';
 
 @GenerateNiceMocks([MockSpec<Directory>(), MockSpec<File>()])
 void main() {
-  late SimpleStorage storage;
+  late FlexiStorage storage;
   late MockDirectory mockDirectory;
   late MockFile mockFile;
 
@@ -23,7 +23,7 @@ void main() {
   const encryptionPassword = 'securePassword';
 
   setUp(() async {
-    storage = SimpleStorage();
+    storage = FlexiStorage();
     mockDirectory = MockDirectory();
     mockFile = MockFile();
 
@@ -46,7 +46,7 @@ void main() {
     FileHandler.mockFile = null; // Reset mock file
   });
 
-  group("SimpleStorage", () {
+  group("FlexiStorage", () {
     group('init', () {
       test('should initialize on web platform', () async {
         IsWebUtil.override = true; // Simulate web

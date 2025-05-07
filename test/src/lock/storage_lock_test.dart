@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:simple_storage/src/lock/storage_lock.dart';
+import 'package:flexi_storage/src/lock/storage_lock.dart';
 
 void main() {
   group('StorageLock', () {

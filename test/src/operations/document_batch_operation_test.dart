@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:simple_storage/src/operations/document_batch_operation.dart';
+import 'package:flexi_storage/src/operations/document_batch_operation.dart';
 
 void main() {
   group('DocumentBatchOperation', () {

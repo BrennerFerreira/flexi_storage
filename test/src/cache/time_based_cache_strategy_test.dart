@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:simple_storage/simple_storage.dart';
+import 'package:flexi_storage/flexi_storage.dart';
 
 void main() {
   group('TimeBasedCacheStrategy', () {

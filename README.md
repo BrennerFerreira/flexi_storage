@@ -1,6 +1,6 @@
-# simple_storage
+# flexi_storage
 
-`simple_storage` is a lightweight and flexible key-value storage solution for Flutter applications. It supports in-memory caching, optional encryption, and is designed to work seamlessly across web and non-web platforms.
+`flexi_storage` is a lightweight and flexible key-value storage solution for Flutter applications. It supports in-memory caching, optional encryption, and is designed to work seamlessly across web and non-web platforms.
 
 ## Features
 
@@ -16,7 +16,7 @@ Add the following to your `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  simple_storage: ^0.0.1
+  flexi_storage: ^0.0.1
 ```
 
 Then run:
@@ -30,11 +30,11 @@ flutter pub get
 ### Basic Example
 
 ```dart
-import 'package:simple_storage/simple_storage.dart';
-import 'package:simple_storage/src/cache/lru_cache_strategy.dart';
+import 'package:flexi_storage/flexi_storage.dart';
+import 'package:flexi_storage/src/cache/lru_cache_strategy.dart';
 
 void main() async {
-  final storage = SimpleStorage();
+  final storage = FlexiStorage();
 
   // Initialize storage
   await storage.init('/path/to/storage');
@@ -76,7 +76,7 @@ print(password); // Outputs: superSecret
 
 The `CacheStrategy` interface allows you to define how data is stored, retrieved, and managed in memory. This is useful for improving performance by avoiding frequent access to the underlying storage.
 
-While it can significantly improve performance, it is not mandatory to use a cache strategy. If no cache strategy is provided, `SimpleStorage` will operate without in-memory caching.
+While it can significantly improve performance, it is not mandatory to use a cache strategy. If no cache strategy is provided, `FlexiStorage` will operate without in-memory caching.
 
 You can use one of the provided cache strategies or create your own
 strategy implementation.
@@ -101,7 +101,7 @@ Here is an example of a custom cache strategy:
 
 ```dart
 import 'dart:async';
-import 'package:simple_storage/src/cache/cache_strategy.dart';
+import 'package:flexi_storage/src/cache/cache_strategy.dart';
 
 class MyCustomCacheStrategy<K, V> implements CacheStrategy<K, V> {
   final Map<K, V> _cache = {};
@@ -130,15 +130,15 @@ class MyCustomCacheStrategy<K, V> implements CacheStrategy<K, V> {
 
 #### Using the Custom Cache Strategy
 
-Once you have implemented your custom cache strategy, you can use it with `SimpleStorage` as follows:
+Once you have implemented your custom cache strategy, you can use it with `FlexiStorage` as follows:
 
 ```dart
-import 'package:simple_storage/simple_storage.dart';
+import 'package:flexi_storage/flexi_storage.dart';
 import 'path/to/my_custom_cache_strategy.dart';
 
 void main() async {
   final customCache = MyCustomCacheStrategy<String, String>();
-  final storage = SimpleStorage(customCache);
+  final storage = FlexiStorage(customCache);
 
   await storage.init('/path/to/storage');
 
@@ -203,12 +203,12 @@ Deletes a document from storage.
 
 Batch operations allow you to perform multiple operations on a document within a single batch. This is useful for grouping related operations together and ensuring they are executed atomically.
 
-The `batch` method in `SimpleStorage` provides this functionality. Provide a function that takes a `BatchOperation` object, and all operations that should be performed.
+The `batch` method in `FlexiStorage` provides this functionality. Provide a function that takes a `BatchOperation` object, and all operations that should be performed.
 
 #### Example Usage
 
 ```dart
-await simpleStorage.batch(
+await FlexiStorage.batch(
   docName: 'exampleDoc',
   operations: (batch) {
     batch.write('key1', 'value1');
