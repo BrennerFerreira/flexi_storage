@@ -1,7 +1,5 @@
 # flexi_storage
 
-## Badges
-
 [![Pub Version](https://img.shields.io/pub/v/flexi_storage)](https://pub.dev/packages/flexi_storage)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/brennerferreira/flexi_storage/build.yml)](https://github.com/brennerferreira/flexi_storage/actions)

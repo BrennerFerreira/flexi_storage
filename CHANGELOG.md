@@ -15,3 +15,7 @@
 ## 1.0.1+1
 
 - Fix publish environment key
+
+## 1.0.1+2
+
+- Correctly list supported platforms
