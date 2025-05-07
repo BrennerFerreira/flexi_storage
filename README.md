@@ -1,6 +1,12 @@
 # flexi_storage
 
-`flexi_storage` is a lightweight and flexible key-value storage solution for Flutter applications. It supports in-memory caching, optional encryption, and is designed to work seamlessly across web and non-web platforms.
+## Badges
+
+[![Pub Version](https://img.shields.io/pub/v/flexi_storage)](https://pub.dev/packages/flexi_storage)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/brennerferreira/flexi_storage/build.yml)](https://github.com/brennerferreira/flexi_storage/actions)
+
+`flexi_storage` is a lightweight and flexible key-value storage solution for Flutter applications. It supports in-memory caching, optional encryption, and is designed to work seamlessly across web, mobile, and desktop platforms.
 
 ## Features
 
@@ -8,7 +14,7 @@
 - Optional AES encryption for secure data storage.
 - In-memory caching with customizable strategies (default: LRU).
 - Thread-safe operations with document-level locking.
-- Cross-platform support (web and non-web).
+- Cross-platform support (web, mobile, and desktop).
 
 ## Installation
 
@@ -16,7 +22,7 @@ Add the following to your `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  flexi_storage: ^0.0.1
+  flexi_storage: latest
 ```
 
 Then run:
@@ -25,13 +31,49 @@ Then run:
 flutter pub get
 ```
 
+## Getting Started
+
+To quickly get started with `flexi_storage`, follow these steps:
+
+1. Add the package to your `pubspec.yaml` file:
+
+   ```yaml
+   dependencies:
+     flexi_storage: latest
+   ```
+
+2. Run the following command to fetch the package:
+
+   ```bash
+   flutter pub get
+   ```
+
+3. Import the package and initialize it in your Dart file:
+
+   ```dart
+   import 'package:flexi_storage/flexi_storage.dart';
+
+   void main() async {
+     final storage = FlexiStorage();
+     await storage.init('/path/to/storage');
+     print('Storage initialized');
+   }
+   ```
+
+## Example App
+
+For a complete example, check out the [example app](example/main.dart) included in this package. It demonstrates various features such as:
+
+- Basic storage operations (write, read, remove, clear).
+- Using encryption for secure data storage.
+- Batch operations for grouped updates.
+
 ## Usage
 
 ### Basic Example
 
 ```dart
 import 'package:flexi_storage/flexi_storage.dart';
-import 'package:flexi_storage/src/cache/lru_cache_strategy.dart';
 
 void main() async {
   final storage = FlexiStorage();
@@ -137,8 +179,8 @@ import 'package:flexi_storage/flexi_storage.dart';
 import 'path/to/my_custom_cache_strategy.dart';
 
 void main() async {
-  final customCache = MyCustomCacheStrategy<String, String>();
-  final storage = FlexiStorage(customCache);
+  final customCache = MyCustomCacheStrategy<String, Map<String, dynamic>>();
+  final storage = FlexiStorage(cacheStrategy: customCache);
 
   await storage.init('/path/to/storage');
 
