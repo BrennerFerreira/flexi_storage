@@ -48,7 +48,7 @@ import 'operations/document_batch_operation.dart';
 /// - Ensure proper error handling when interacting with the storage to handle cases
 ///   like missing keys or storage failures.
 class SimpleStorage {
-  SimpleStorage(this._documentsCache);
+  SimpleStorage({CacheStrategy<String, Map<String, dynamic>>? cacheStrategy}) : _documentsCache = cacheStrategy;
 
   // Directory path where files will be stored
   String? _basePath;
@@ -58,7 +58,7 @@ class SimpleStorage {
   bool get isInitialized => _isInitialized;
 
   // Cache strategy for in-memory caching
-  final CacheStrategy<String, Map<String, dynamic>> _documentsCache;
+  final CacheStrategy<String, Map<String, dynamic>>? _documentsCache;
 
   // Document locks to prevent race conditions
   final _documentLocks = <String, StorageLock>{};
@@ -257,7 +257,8 @@ class SimpleStorage {
     _checkInitialized();
 
     await _getLock(docName).synchronized(() async {
-      if (await _documentsCache.hasKey(docName)) {
+      final hasKey = _documentsCache != null && await _documentsCache.hasKey(docName);
+      if (hasKey) {
         _documentsCache.remove(docName);
       }
 
@@ -377,7 +378,8 @@ class SimpleStorage {
   /// the document data.
   Future<Map<String, dynamic>> _loadDocument({required String docName, String? encryptionPassword}) async {
     // Check if doc is in cache
-    if (await _documentsCache.hasKey(docName)) {
+    final hasKey = _documentsCache != null && await _documentsCache.hasKey(docName);
+    if (hasKey) {
       final cache = await _documentsCache.read(docName);
       return Map<String, dynamic>.from(cache ?? {});
     }
@@ -415,7 +417,7 @@ class SimpleStorage {
     }
 
     // Add to cache
-    await _documentsCache.write(docName, doc);
+    await _documentsCache?.write(docName, doc);
     return Map<String, dynamic>.from(doc);
   }
 
@@ -440,7 +442,7 @@ class SimpleStorage {
   /// - Any exceptions that occur during file or storage operations.
   Future<void> _persistDocument({required String docName, required Map<String, dynamic> doc, String? encryptionPassword}) async {
     // Update cache
-    await _documentsCache.write(docName, Map<String, dynamic>.from(doc));
+    await _documentsCache?.write(docName, Map<String, dynamic>.from(doc));
 
     // Convert to JSON
     final jsonString = jsonEncode(doc);
