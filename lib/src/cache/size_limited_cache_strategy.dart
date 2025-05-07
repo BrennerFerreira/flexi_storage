@@ -22,11 +22,9 @@ class SizeLimitedCacheStrategy<K, V> implements CacheStrategy<K, V> {
   /// List to track the order of key insertions.
   final List<K> _accessOrder = [];
 
-  /**
-   * Creates a new instance of [SizeLimitedCacheStrategy].
-   *
-   * @param maxSize The maximum number of items the cache can hold.
-   */
+  /// Creates a new instance of [SizeLimitedCacheStrategy].
+  ///
+  /// @param maxSize The maximum number of items the cache can hold.
   SizeLimitedCacheStrategy({required this.maxSize});
 
   @override

@@ -8,7 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:universal_web/web.dart' as web;
 
 import 'cache/cache_strategy.dart';
-import 'lock/lock.dart';
+import 'lock/storage_lock.dart';
 import 'operations/batch_operation.dart';
 import 'operations/document_batch_operation.dart';
 
