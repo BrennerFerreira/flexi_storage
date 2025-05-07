@@ -11,6 +11,8 @@ import 'cache/cache_strategy.dart';
 import 'lock/storage_lock.dart';
 import 'operations/batch_operation.dart';
 import 'operations/document_batch_operation.dart';
+import 'utils/file_handler.dart';
+import 'utils/is_web_util.dart';
 
 /// The `SimpleStorage` class provides an abstraction for storing, retrieving,
 /// and managing data in a simple key-value format. It is designed to be lightweight
@@ -66,7 +68,7 @@ class SimpleStorage {
   /// Initializes the storage system with the given directory path.
   ///
   /// This method ensures that the storage system is properly set up before
-  /// use. If the platform is web (`kIsWeb`), no directory path is required,
+  /// use. If the platform is web (`IsWebUtil.isWeb`), no directory path is required,
   /// and the initialization is completed immediately. For other platforms,
   /// it ensures that the specified directory exists, creating it if necessary.
   ///
@@ -80,12 +82,12 @@ class SimpleStorage {
   Future<void> init(String directoryPath) async {
     if (_isInitialized) return;
 
-    if (kIsWeb) {
+    if (IsWebUtil.isWeb) {
       // Web doesn't need a directory path
       _isInitialized = true;
     } else {
       // Ensure directory exists
-      final directory = Directory(directoryPath);
+      final directory = FileHandler.createDirectory(directoryPath);
       if (!await directory.exists()) {
         await directory.create(recursive: true);
       }
@@ -264,7 +266,7 @@ class SimpleStorage {
 
       final fileExtension = encryptionPassword != null ? '.txt' : '.json';
 
-      if (kIsWeb) {
+      if (IsWebUtil.isWeb) {
         web.window.localStorage.removeItem(docName);
       } else {
         final file = File('$_basePath/$docName$fileExtension');
@@ -386,7 +388,7 @@ class SimpleStorage {
 
     Map<String, dynamic> doc = {};
 
-    if (kIsWeb) {
+    if (IsWebUtil.isWeb) {
       // Web storage implementation
       final storedData = web.window.localStorage[docName];
       if (storedData != null && storedData.isNotEmpty) {
@@ -449,7 +451,7 @@ class SimpleStorage {
     final encodedData = _encodeDocument(docName: docName, data: jsonString, encryptionPassword: encryptionPassword);
     final fileExtension = encryptionPassword != null ? '.txt' : '.json';
 
-    if (kIsWeb) {
+    if (IsWebUtil.isWeb) {
       // Web storage implementation
       web.window.localStorage.setItem(docName, encodedData);
     } else {
