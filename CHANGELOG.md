@@ -7,3 +7,7 @@
 - Enabled cross-platform support for web and non-web environments.
 - Included batch operations for atomic updates.
 - Added API for custom cache strategy implementation.
+
+## 1.0.1
+
+- Update automated publishing to pub.dev

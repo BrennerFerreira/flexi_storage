@@ -1,6 +1,6 @@
 name: flexi_storage
 description: "A lightweight and flexible key-value storage solution for Dart and Flutter, supporting encryption, caching, and batch operations."
-version: 1.0.0
+version: 1.0.1
 repository: https://github.com/BrennerFerreira/flexi_storage
 issue_tracker: https://github.com/BrennerFerreira/flexi_storage/issues
 
