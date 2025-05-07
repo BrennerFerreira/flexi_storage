@@ -201,11 +201,29 @@ Deletes a document from storage.
 
 ### Batch Operations
 
+Batch operations allow you to perform multiple operations on a document within a single batch. This is useful for grouping related operations together and ensuring they are executed atomically.
+
+The `batch` method in `SimpleStorage` provides this functionality. Provide a function that takes a `BatchOperation` object, and all operations that should be performed.
+
+#### Example Usage
+
 ```dart
-Future<void> batch({required String docName, required FutureOr<dynamic> Function(BatchOperation) operations, String? encryptionPassword});
+await simpleStorage.batch(
+  docName: 'exampleDoc',
+  operations: (batch) {
+    batch.write('key1', 'value1');
+    batch.write('key2', 42);
+    batch.remove('key3');
+  },
+  encryptionPassword: 'securePassword',
+);
 ```
 
-Performs multiple operations on a document within a single batch.
+In this example:
+
+- The `batch` method ensures thread safety by locking the document during the operation.
+- The `operations` function receives a `BatchOperation` object, which you can use to perform operations like `write`, `read`, `remove`, and `clear`.
+- If the document is modified during the batch operation, it is automatically persisted.
 
 ## License
 
