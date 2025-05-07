@@ -1,5 +1,5 @@
 name: flexi_storage
-description: "A new Flutter package project."
+description: "A lightweight and flexible key-value storage solution for Dart and Flutter, supporting encryption, caching, and batch operations."
 version: 1.0.0
 homepage:
 
@@ -24,3 +24,14 @@ dev_dependencies:
   path_provider: ^2.1.5
 
 flutter:
+
+tags:
+  - storage
+  - key-value
+  - encryption
+  - caching
+  - flutter
+  - dart
+  - batch-operations
+  - lightweight
+  - cross-platform
