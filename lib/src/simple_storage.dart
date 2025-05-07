@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:encrypt/encrypt.dart' as encrypt;
@@ -269,7 +268,7 @@ class SimpleStorage {
       if (IsWebUtil.isWeb) {
         web.window.localStorage.removeItem(docName);
       } else {
-        final file = File('$_basePath/$docName$fileExtension');
+        final file = FileHandler.createFile('$_basePath/$docName$fileExtension');
         if (await file.exists()) {
           await file.delete();
         }
@@ -291,10 +290,10 @@ class SimpleStorage {
   ///
   /// Throws an exception if the storage system is not initialized or
   /// if the document cannot be loaded.
-  Future<List<String>> getKeys(String docName) async {
+  Future<List<String>> getKeys(String docName, {String? encryptionPassword}) async {
     _checkInitialized();
 
-    final doc = await _loadDocument(docName: docName);
+    final doc = await _loadDocument(docName: docName, encryptionPassword: encryptionPassword);
     return doc.keys.toSet().toList();
   }
 
@@ -393,7 +392,7 @@ class SimpleStorage {
       final storedData = web.window.localStorage[docName];
       if (storedData != null && storedData.isNotEmpty) {
         try {
-          final decodedData = _decodeDocument(docName, storedData, encryptionPassword);
+          final decodedData = decodeDocument(docName, storedData, encryptionPassword);
           doc.addAll(jsonDecode(decodedData) as Map<String, dynamic>);
         } catch (e) {
           debugPrint('SimpleStorage: Error loading doc $docName: $e');
@@ -402,14 +401,14 @@ class SimpleStorage {
     } else {
       final fileExtension = encryptionPassword != null ? '.txt' : '.json';
       // File system implementation
-      final file = File('$_basePath/$docName$fileExtension');
+      final file = FileHandler.createFile('$_basePath/$docName$fileExtension');
       final fileExists = await file.exists();
 
       if (fileExists) {
         try {
           final contents = await file.readAsString();
           if (contents.isNotEmpty) {
-            final decodedContents = _decodeDocument(docName, contents, encryptionPassword);
+            final decodedContents = decodeDocument(docName, contents, encryptionPassword);
             doc.addAll(jsonDecode(decodedContents) as Map<String, dynamic>);
           }
         } catch (e) {
@@ -448,7 +447,7 @@ class SimpleStorage {
 
     // Convert to JSON
     final jsonString = jsonEncode(doc);
-    final encodedData = _encodeDocument(docName: docName, data: jsonString, encryptionPassword: encryptionPassword);
+    final encodedData = encodeDocument(docName: docName, data: jsonString, encryptionPassword: encryptionPassword);
     final fileExtension = encryptionPassword != null ? '.txt' : '.json';
 
     if (IsWebUtil.isWeb) {
@@ -456,7 +455,7 @@ class SimpleStorage {
       web.window.localStorage.setItem(docName, encodedData);
     } else {
       // File system implementation
-      final file = File('$_basePath/$docName$fileExtension');
+      final file = FileHandler.createFile('$_basePath/$docName$fileExtension');
       await file.writeAsString(encodedData);
     }
   }
@@ -476,7 +475,8 @@ class SimpleStorage {
   ///
   /// - Returns: A string containing either the encrypted data (if an
   ///   [encryptionPassword] is provided) or the original [data].
-  String _encodeDocument({required String docName, required String data, String? encryptionPassword}) {
+  @visibleForTesting
+  String encodeDocument({required String docName, required String data, String? encryptionPassword}) {
     if (encryptionPassword != null) {
       final key = _generateKeyFromPassword(encryptionPassword);
       final iv = encrypt.IV.fromSecureRandom(16);
@@ -505,7 +505,8 @@ class SimpleStorage {
   ///   - encryptionPassword: An optional password used to decrypt the data if it is encrypted.
   ///
   /// - Returns: The decoded document string. If decryption fails, returns `'{}'`.
-  String _decodeDocument(String docName, String data, String? encryptionPassword) {
+  @visibleForTesting
+  String decodeDocument(String docName, String data, String? encryptionPassword) {
     if (data.startsWith('ENCRYPTED:') && encryptionPassword != null) {
       final encryptedData = data.substring(10);
       final parts = encryptedData.split(':');
