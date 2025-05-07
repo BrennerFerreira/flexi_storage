@@ -34,7 +34,7 @@ import 'package:simple_storage/simple_storage.dart';
 import 'package:simple_storage/src/cache/lru_cache_strategy.dart';
 
 void main() async {
-  final storage = SimpleStorage(LRUCacheStrategy());
+  final storage = SimpleStorage();
 
   // Initialize storage
   await storage.init('/path/to/storage');
@@ -54,7 +54,7 @@ void main() async {
 }
 ```
 
-### Encrypted Storage
+### Encrypted Storage Example
 
 ```dart
 await storage.write(
@@ -71,6 +71,25 @@ final password = await storage.read<String>(
 );
 print(password); // Outputs: superSecret
 ```
+
+## Cache Strategies
+
+The `CacheStrategy` interface allows you to define how data is stored, retrieved, and managed in memory. This is useful for improving performance by avoiding frequent access to the underlying storage.
+
+While it can significantly improve performance, it is not mandatory to use a cache strategy. If no cache strategy is provided, `SimpleStorage` will operate without in-memory caching.
+
+You can use one of the provided cache strategies or create your own
+strategy implementation.
+
+### Provided Cache Strategies
+
+The package includes the following cache strategies out of the box:
+
+1. **LRUCacheStrategy**: Implements the Least Recently Used (LRU) eviction policy. When the cache reaches its capacity, the least recently used item is removed. Ideal for scenarios where frequently accessed data should remain in the cache.
+
+2. **SizeLimitedCacheStrategy**: Limits the number of items stored in the cache. When the cache exceeds its maximum size, the oldest item (based on insertion order) is evicted. Suitable for memory-constrained environments.
+
+3. **TimeBasedCacheStrategy**: Automatically removes items after a specified time-to-live (TTL). Useful for scenarios where data becomes stale after a certain period, such as caching API responses.
 
 ### Implementing a Custom Cache Strategy
 
@@ -129,10 +148,6 @@ void main() async {
   print(value); // Outputs: value
 }
 ```
-
-### Note on Cache Strategy
-
-The `CacheStrategy` is used for in-memory caching to retrieve values faster without accessing the underlying storage. While it can significantly improve performance, it is not mandatory to use a cache strategy. If no cache strategy is provided, `SimpleStorage` will operate without in-memory caching.
 
 ## API Overview
 
