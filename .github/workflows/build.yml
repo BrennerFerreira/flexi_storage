@@ -16,10 +16,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Dart
-        uses: dart-lang/setup-dart@v1
+      - name: Setup Flutter SDK
+        uses: flutter-actions/setup-flutter@v4
         with:
-          sdk: stable
+          channel: stable
+          version: "3.29.3"
 
       - name: Install dependencies
         run: flutter pub get

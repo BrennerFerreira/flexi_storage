@@ -1,0 +1,31 @@
+# .github/workflows/publish.yml
+name: Publish to pub.dev
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+*" # tag pattern on pub.dev: 'v{{version}'
+
+# Publish using custom workflow
+jobs:
+  publish:
+    permissions:
+      id-token: write # Required for authentication using OIDC
+      contents: read
+    with:
+      environment: pub.dev
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Setup Flutter SDK and automated pub.dev credentials
+      - uses: flutter-actions/setup-flutter@v4
+      - uses: flutter-actions/setup-pubdev-credentials@v1
+
+      - name: Install dependencies
+        run: flutter pub get
+      # Here you can insert custom steps you need
+      # - name: Build
+      #   run: flutter build ...
+      - name: Publish
+        run: flutter pub publish --force
