@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:encrypt/encrypt.dart' as encrypt;
@@ -62,7 +63,7 @@ class FlexiStorage {
   final CacheStrategy<String, Map<String, dynamic>>? _documentsCache;
 
   // Document locks to prevent race conditions
-  final _documentLocks = <String, StorageLock>{};
+  final Map<String, StorageLock> _documentLocks = <String, StorageLock>{};
 
   /// Initializes the storage system with the given directory path.
   ///
@@ -86,7 +87,7 @@ class FlexiStorage {
       _isInitialized = true;
     } else {
       // Ensure directory exists
-      final directory = FileHandler.createDirectory(directoryPath);
+      final Directory directory = FileHandler.createDirectory(directoryPath);
       if (!await directory.exists()) {
         await directory.create(recursive: true);
       }
@@ -119,8 +120,8 @@ class FlexiStorage {
   /// - Parameter password: The password string to generate the encryption key from.
   /// - Returns: An instance of [encrypt.Key] derived from the SHA-256 hash of the password.
   encrypt.Key _generateKeyFromPassword(String password) {
-    final bytes = utf8.encode(password);
-    final hash = sha256.convert(bytes);
+    final List<int> bytes = utf8.encode(password);
+    final Digest hash = sha256.convert(bytes);
     return encrypt.Key.fromBase16(hash.toString());
   }
 
@@ -148,7 +149,7 @@ class FlexiStorage {
     _checkInitialized();
 
     await _getLock(docName).synchronized(() async {
-      final doc = await _loadDocument(docName: docName, encryptionPassword: encryptionPassword);
+      final Map<String, dynamic> doc = await _loadDocument(docName: docName, encryptionPassword: encryptionPassword);
       doc.putIfAbsent(key, () => value);
       await _persistDocument(docName: docName, doc: doc, encryptionPassword: encryptionPassword);
     });
@@ -177,7 +178,7 @@ class FlexiStorage {
   Future<T?> read<T>({required String docName, required String key, String? encryptionPassword}) async {
     _checkInitialized();
 
-    final doc = await _loadDocument(docName: docName, encryptionPassword: encryptionPassword);
+    final Map<String, dynamic> doc = await _loadDocument(docName: docName, encryptionPassword: encryptionPassword);
     if (!doc.containsKey(key)) return null;
 
     try {
@@ -210,7 +211,7 @@ class FlexiStorage {
     _checkInitialized();
 
     await _getLock(docName).synchronized(() async {
-      final doc = await _loadDocument(docName: docName, encryptionPassword: encryptionPassword);
+      final Map<String, dynamic> doc = await _loadDocument(docName: docName, encryptionPassword: encryptionPassword);
       doc.remove(key);
       await _persistDocument(docName: docName, doc: doc, encryptionPassword: encryptionPassword);
     });
@@ -231,7 +232,7 @@ class FlexiStorage {
     _checkInitialized();
 
     await _getLock(docName).synchronized(() async {
-      final doc = <String, dynamic>{};
+      final Map<String, dynamic> doc = <String, dynamic>{};
       await _persistDocument(docName: docName, doc: doc);
     });
   }
@@ -258,17 +259,18 @@ class FlexiStorage {
     _checkInitialized();
 
     await _getLock(docName).synchronized(() async {
-      final hasKey = _documentsCache != null && await _documentsCache.hasKey(docName);
+      final bool hasKey = _documentsCache != null && await _documentsCache.hasKey(docName);
+
       if (hasKey) {
         _documentsCache.remove(docName);
       }
 
-      final fileExtension = encryptionPassword != null ? '.txt' : '.json';
+      final String fileExtension = encryptionPassword != null ? '.txt' : '.json';
 
       if (IsWebUtil.isWeb) {
         web.window.localStorage.removeItem(docName);
       } else {
-        final file = FileHandler.createFile('$_basePath/$docName$fileExtension');
+        final File file = FileHandler.createFile('$_basePath/$docName$fileExtension');
         if (await file.exists()) {
           await file.delete();
         }
@@ -293,7 +295,7 @@ class FlexiStorage {
   Future<List<String>> getKeys(String docName, {String? encryptionPassword}) async {
     _checkInitialized();
 
-    final doc = await _loadDocument(docName: docName, encryptionPassword: encryptionPassword);
+    final Map<String, dynamic> doc = await _loadDocument(docName: docName, encryptionPassword: encryptionPassword);
     return doc.keys.toSet().toList();
   }
 
@@ -330,8 +332,8 @@ class FlexiStorage {
     _checkInitialized();
 
     await _getLock(docName).synchronized(() async {
-      final doc = await _loadDocument(docName: docName, encryptionPassword: encryptionPassword);
-      final batchOp = DocumentBatchOperation(doc);
+      final Map<String, dynamic> doc = await _loadDocument(docName: docName, encryptionPassword: encryptionPassword);
+      final DocumentBatchOperation batchOp = DocumentBatchOperation(doc);
 
       await operations(batchOp);
 
@@ -379,36 +381,36 @@ class FlexiStorage {
   /// the document data.
   Future<Map<String, dynamic>> _loadDocument({required String docName, String? encryptionPassword}) async {
     // Check if doc is in cache
-    final hasKey = _documentsCache != null && await _documentsCache.hasKey(docName);
+    final bool hasKey = _documentsCache != null && await _documentsCache.hasKey(docName);
     if (hasKey) {
-      final cache = await _documentsCache.read(docName);
-      return Map<String, dynamic>.from(cache ?? {});
+      final Map<String, dynamic>? cache = await _documentsCache.read(docName);
+      return Map<String, dynamic>.from(cache ?? <String, dynamic>{});
     }
 
-    Map<String, dynamic> doc = {};
+    final Map<String, dynamic> doc = <String, dynamic>{};
 
     if (IsWebUtil.isWeb) {
       // Web storage implementation
-      final storedData = web.window.localStorage[docName];
+      final String? storedData = web.window.localStorage[docName];
       if (storedData != null && storedData.isNotEmpty) {
         try {
-          final decodedData = decodeDocument(docName, storedData, encryptionPassword);
+          final String decodedData = decodeDocument(docName, storedData, encryptionPassword);
           doc.addAll(jsonDecode(decodedData) as Map<String, dynamic>);
         } catch (e) {
           debugPrint('FlexiStorage: Error loading doc $docName: $e');
         }
       }
     } else {
-      final fileExtension = encryptionPassword != null ? '.txt' : '.json';
+      final String fileExtension = encryptionPassword != null ? '.txt' : '.json';
       // File system implementation
-      final file = FileHandler.createFile('$_basePath/$docName$fileExtension');
-      final fileExists = await file.exists();
+      final File file = FileHandler.createFile('$_basePath/$docName$fileExtension');
+      final bool fileExists = await file.exists();
 
       if (fileExists) {
         try {
-          final contents = await file.readAsString();
+          final String contents = await file.readAsString();
           if (contents.isNotEmpty) {
-            final decodedContents = decodeDocument(docName, contents, encryptionPassword);
+            final String decodedContents = decodeDocument(docName, contents, encryptionPassword);
             doc.addAll(jsonDecode(decodedContents) as Map<String, dynamic>);
           }
         } catch (e) {
@@ -446,16 +448,16 @@ class FlexiStorage {
     await _documentsCache?.write(docName, Map<String, dynamic>.from(doc));
 
     // Convert to JSON
-    final jsonString = jsonEncode(doc);
-    final encodedData = encodeDocument(docName: docName, data: jsonString, encryptionPassword: encryptionPassword);
-    final fileExtension = encryptionPassword != null ? '.txt' : '.json';
+    final String jsonString = jsonEncode(doc);
+    final String encodedData = encodeDocument(docName: docName, data: jsonString, encryptionPassword: encryptionPassword);
+    final String fileExtension = encryptionPassword != null ? '.txt' : '.json';
 
     if (IsWebUtil.isWeb) {
       // Web storage implementation
       web.window.localStorage.setItem(docName, encodedData);
     } else {
       // File system implementation
-      final file = FileHandler.createFile('$_basePath/$docName$fileExtension');
+      final File file = FileHandler.createFile('$_basePath/$docName$fileExtension');
       await file.writeAsString(encodedData);
     }
   }
@@ -478,12 +480,12 @@ class FlexiStorage {
   @visibleForTesting
   String encodeDocument({required String docName, required String data, String? encryptionPassword}) {
     if (encryptionPassword != null) {
-      final key = _generateKeyFromPassword(encryptionPassword);
-      final iv = encrypt.IV.fromSecureRandom(16);
-      final encrypter = encrypt.Encrypter(encrypt.AES(key, mode: encrypt.AESMode.cbc));
-      final encrypted = encrypter.encrypt(data, iv: iv);
+      final encrypt.Key key = _generateKeyFromPassword(encryptionPassword);
+      final encrypt.IV iv = encrypt.IV.fromSecureRandom(16);
+      final encrypt.Encrypter encrypter = encrypt.Encrypter(encrypt.AES(key, mode: encrypt.AESMode.cbc));
+      final encrypt.Encrypted encrypted = encrypter.encrypt(data, iv: iv);
 
-      final combined = '${iv.base64}:${encrypted.base64}';
+      final String combined = '${iv.base64}:${encrypted.base64}';
       return 'ENCRYPTED:$combined';
     }
     return data;
@@ -508,17 +510,17 @@ class FlexiStorage {
   @visibleForTesting
   String decodeDocument(String docName, String data, String? encryptionPassword) {
     if (data.startsWith('ENCRYPTED:') && encryptionPassword != null) {
-      final encryptedData = data.substring(10);
-      final parts = encryptedData.split(':');
+      final String encryptedData = data.substring(10);
+      final List<String> parts = encryptedData.split(':');
       if (parts.length != 2) {
         debugPrint('FlexiStorage: Invalid format for encrypted doc $docName');
         return '{}';
       }
 
-      final iv = encrypt.IV.fromBase64(parts[0]);
-      final encrypted = encrypt.Encrypted.fromBase64(parts[1]);
-      final key = _generateKeyFromPassword(encryptionPassword);
-      final encrypter = encrypt.Encrypter(encrypt.AES(key, mode: encrypt.AESMode.cbc));
+      final encrypt.IV iv = encrypt.IV.fromBase64(parts[0]);
+      final encrypt.Encrypted encrypted = encrypt.Encrypted.fromBase64(parts[1]);
+      final encrypt.Key key = _generateKeyFromPassword(encryptionPassword);
+      final encrypt.Encrypter encrypter = encrypt.Encrypter(encrypt.AES(key, mode: encrypt.AESMode.cbc));
 
       try {
         return encrypter.decrypt(encrypted, iv: iv);

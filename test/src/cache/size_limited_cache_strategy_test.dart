@@ -6,7 +6,7 @@ void main() {
     late SizeLimitedCacheStrategy<String, String> cache;
 
     setUp(() {
-      cache = SizeLimitedCacheStrategy(maxSize: 3); // Initialize with a max size of 3
+      cache = SizeLimitedCacheStrategy<String, String>(maxSize: 3); // Initialize with a max size of 3
     });
 
     test('should store and retrieve values', () {

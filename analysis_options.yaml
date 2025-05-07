@@ -2,3 +2,25 @@ include: package:flutter_lints/flutter.yaml
 
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options
+
+analyzer:
+  strong-mode:
+    implicit-casts: false
+    implicit-dynamic: false
+  exclude:
+    - build/**
+    - coverage/**
+    - test_cache/**
+    - unit_test_assets/**
+
+linter:
+  rules:
+    - prefer_const_constructors
+    - avoid_print
+    - always_specify_types
+    - prefer_final_fields
+    - use_function_type_syntax_for_parameters
+
+error:
+  - missing_required_param
+  - invalid_assignment

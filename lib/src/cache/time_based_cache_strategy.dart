@@ -17,10 +17,10 @@ class TimeBasedCacheStrategy<K, V> implements CacheStrategy<K, V> {
   final Duration ttl;
 
   /// Internal map to store cache items.
-  final Map<K, V> _cache = {};
+  final Map<K, V> _cache = <K, V>{};
 
   /// Map to track the expiration time of each cache entry.
-  final Map<K, DateTime> _expiryTimes = {};
+  final Map<K, DateTime> _expiryTimes = <K, DateTime>{};
 
   /// Creates a new instance of [TimeBasedCacheStrategy].
   ///

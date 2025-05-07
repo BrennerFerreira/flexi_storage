@@ -7,7 +7,7 @@ void main() {
     late DocumentBatchOperation batchOperation;
 
     setUp(() {
-      document = {'key1': 'value1', 'key2': 42};
+      document = <String, dynamic>{'key1': 'value1', 'key2': 42};
       batchOperation = DocumentBatchOperation(document);
     });
 
@@ -18,12 +18,12 @@ void main() {
     });
 
     test('read should return the correct value for an existing key', () {
-      final value = batchOperation.read<String>('key1');
+      final String? value = batchOperation.read<String>('key1');
       expect(value, 'value1');
     });
 
     test('read should return null for a non-existing key', () {
-      final value = batchOperation.read<String>('non_existing_key');
+      final String? value = batchOperation.read<String>('non_existing_key');
       expect(value, isNull);
     });
 

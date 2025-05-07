@@ -17,10 +17,10 @@ class SizeLimitedCacheStrategy<K, V> implements CacheStrategy<K, V> {
   final int maxSize;
 
   /// Internal map to store cache items.
-  final Map<K, V> _cache = {};
+  final Map<K, V> _cache = <K, V>{};
 
   /// List to track the order of key insertions.
-  final List<K> _accessOrder = [];
+  final List<K> _accessOrder = <K>[];
 
   /// Creates a new instance of [SizeLimitedCacheStrategy].
   ///
@@ -30,7 +30,7 @@ class SizeLimitedCacheStrategy<K, V> implements CacheStrategy<K, V> {
   @override
   FutureOr<void> write(K key, V value) {
     if (_cache.length >= maxSize) {
-      final oldestKey = _accessOrder.removeAt(0);
+      final K oldestKey = _accessOrder.removeAt(0);
       _cache.remove(oldestKey);
     }
     _cache[key] = value;

@@ -44,11 +44,11 @@ class StorageLock {
 
     try {
       // Perform the action
-      final result = await action();
+      final T result = await action();
       return result;
     } finally {
       // Release the lock
-      final completer = _completer!;
+      final Completer<void> completer = _completer!;
       _completer = null;
       completer.complete();
     }

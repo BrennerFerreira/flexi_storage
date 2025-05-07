@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flexi_storage/src/operations/batch_operation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
@@ -10,17 +11,17 @@ import 'package:flexi_storage/src/utils/is_web_util.dart';
 
 import 'flexi_storage_test.mocks.dart';
 
-@GenerateNiceMocks([MockSpec<Directory>(), MockSpec<File>()])
+@GenerateNiceMocks(<MockSpec<dynamic>>[MockSpec<Directory>(), MockSpec<File>()])
 void main() {
   late FlexiStorage storage;
   late MockDirectory mockDirectory;
   late MockFile mockFile;
 
-  const path = 'test_path';
-  const docName = 'testDoc';
-  const key = 'testKey';
-  const value = 'testValue';
-  const encryptionPassword = 'securePassword';
+  const String path = 'test_path';
+  const String docName = 'testDoc';
+  const String key = 'testKey';
+  const String value = 'testValue';
+  const String encryptionPassword = 'securePassword';
 
   setUp(() async {
     storage = FlexiStorage();
@@ -33,7 +34,7 @@ void main() {
 
     when(mockFile.exists()).thenAnswer((_) async => true);
     when(mockFile.create(recursive: true)).thenAnswer((_) async => mockFile);
-    when(mockFile.writeAsString(captureAny)).thenAnswer((inv) async => mockFile);
+    when(mockFile.writeAsString(captureAny)).thenAnswer((Invocation inv) async => mockFile);
     when(mockFile.delete()).thenAnswer((_) async => mockFile);
 
     FileHandler.mockDirectory = mockDirectory; // Set the mock directory
@@ -85,7 +86,7 @@ void main() {
       test('should throw exception if directory cannot be created', () async {
         FileHandler.mockDirectory = mockDirectory;
         when(mockDirectory.exists()).thenAnswer((_) async => false);
-        when(mockDirectory.create(recursive: true)).thenThrow(FileSystemException('Failed to create directory'));
+        when(mockDirectory.create(recursive: true)).thenThrow(const FileSystemException('Failed to create directory'));
 
         expect(() async => await storage.init(path), throwsA(isA<FileSystemException>()));
       });
@@ -98,12 +99,12 @@ void main() {
         when(mockFile.readAsString()).thenAnswer((_) async => '{}');
         await storage.write(docName: docName, key: key, value: value);
 
-        verify(mockFile.writeAsString(jsonEncode({key: value}))).called(1);
+        verify(mockFile.writeAsString(jsonEncode(<String, String>{key: value}))).called(1);
       });
 
       test('should overwrite an existing key with a new value', () async {
-        const initialValue = 'initialValue';
-        const newValue = 'newValue';
+        const String initialValue = 'initialValue';
+        const String newValue = 'newValue';
 
         when(mockFile.readAsString()).thenAnswer((_) async => '{}');
 
@@ -111,8 +112,8 @@ void main() {
         await storage.write(docName: docName, key: key, value: initialValue);
         await storage.write(docName: docName, key: key, value: newValue);
 
-        verify(mockFile.writeAsString(jsonEncode({key: initialValue}))).called(1);
-        verify(mockFile.writeAsString(jsonEncode({key: newValue}))).called(1);
+        verify(mockFile.writeAsString(jsonEncode(<String, String>{key: initialValue}))).called(1);
+        verify(mockFile.writeAsString(jsonEncode(<String, String>{key: newValue}))).called(1);
       });
 
       test('should throw an exception if storage is not initialized', () async {
@@ -122,14 +123,14 @@ void main() {
 
       test('should write an encrypted document if encryptionPassword is provided', () async {
         when(mockFile.readAsString()).thenAnswer((_) async => '{}');
-        const encryptionPassword = 'securePassword';
+        const String encryptionPassword = 'securePassword';
 
         await storage.init(path);
         await storage.write(docName: docName, key: key, value: value, encryptionPassword: encryptionPassword);
 
-        final capturedCall = verify(mockFile.writeAsString(captureAny));
+        final VerificationResult capturedCall = verify(mockFile.writeAsString(captureAny));
         expect(capturedCall.captured.length, 1);
-        final encryptedData = capturedCall.captured[0] as String;
+        final String encryptedData = capturedCall.captured[0] as String;
         expect(encryptedData, isA<String>());
         expect(encryptedData.startsWith('ENCRYPTED:'), isTrue);
       });
@@ -138,18 +139,18 @@ void main() {
     group('read', () {
       test('should read a value by key from a document', () async {
         await storage.init(path);
-        when(mockFile.readAsString()).thenAnswer((_) async => jsonEncode({key: value}));
+        when(mockFile.readAsString()).thenAnswer((_) async => jsonEncode(<String, String>{key: value}));
 
-        final result = await storage.read<String>(docName: docName, key: key);
+        final String? result = await storage.read<String>(docName: docName, key: key);
 
         expect(result, equals(value));
       });
 
       test('should return null if key does not exist in the document', () async {
         await storage.init(path);
-        when(mockFile.readAsString()).thenAnswer((_) async => jsonEncode({}));
+        when(mockFile.readAsString()).thenAnswer((_) async => jsonEncode(<String, String>{}));
 
-        final result = await storage.read<String>(docName: docName, key: key);
+        final String? result = await storage.read<String>(docName: docName, key: key);
 
         expect(result, isNull);
       });
@@ -159,22 +160,22 @@ void main() {
       });
 
       test('should read an encrypted value if encryptionPassword is provided', () async {
-        final jsonData = jsonEncode({key: value});
-        final encryptedData = storage.encodeDocument(docName: docName, data: jsonData, encryptionPassword: encryptionPassword);
+        final String jsonData = jsonEncode(<String, String>{key: value});
+        final String encryptedData = storage.encodeDocument(docName: docName, data: jsonData, encryptionPassword: encryptionPassword);
 
         await storage.init(path);
         when(mockFile.readAsString()).thenAnswer((_) async => encryptedData);
 
-        final result = await storage.read<String>(docName: docName, key: key, encryptionPassword: encryptionPassword);
+        final String? result = await storage.read<String>(docName: docName, key: key, encryptionPassword: encryptionPassword);
 
         expect(result, equals(value));
       });
 
       test('should return null if type mismatch occurs', () async {
         await storage.init(path);
-        when(mockFile.readAsString()).thenAnswer((_) async => jsonEncode({key: value}));
+        when(mockFile.readAsString()).thenAnswer((_) async => jsonEncode(<String, String>{key: value}));
 
-        final result = await storage.read<int>(docName: docName, key: key);
+        final int? result = await storage.read<int>(docName: docName, key: key);
 
         expect(result, isNull);
       });
@@ -183,11 +184,11 @@ void main() {
     group('remove', () {
       test('should remove a key-value pair from a document', () async {
         await storage.init(path);
-        when(mockFile.readAsString()).thenAnswer((_) async => jsonEncode({key: value}));
+        when(mockFile.readAsString()).thenAnswer((_) async => jsonEncode(<String, String>{key: value}));
 
         await storage.remove(docName: docName, key: key);
 
-        verify(mockFile.writeAsString(jsonEncode({}))).called(1);
+        verify(mockFile.writeAsString(jsonEncode(<String, String>{}))).called(1);
       });
 
       test('should throw an exception if storage is not initialized', () async {
@@ -195,27 +196,27 @@ void main() {
       });
 
       test('should remove an encrypted key-value pair if encryptionPassword is provided', () async {
-        final jsonData = jsonEncode({key: value});
-        final encryptedData = storage.encodeDocument(docName: docName, data: jsonData, encryptionPassword: encryptionPassword);
+        final String jsonData = jsonEncode(<String, String>{key: value});
+        final String encryptedData = storage.encodeDocument(docName: docName, data: jsonData, encryptionPassword: encryptionPassword);
 
         await storage.init(path);
         when(mockFile.readAsString()).thenAnswer((_) async => encryptedData);
 
         await storage.remove(docName: docName, key: key, encryptionPassword: encryptionPassword);
-        final capturedWrite = verify(mockFile.writeAsString(captureAny));
-        final decryptedData = storage.decodeDocument(docName, capturedWrite.captured[0], encryptionPassword);
-        expect(decryptedData, equals(jsonEncode({})));
+        final VerificationResult capturedWrite = verify(mockFile.writeAsString(captureAny));
+        final String decryptedData = storage.decodeDocument(docName, capturedWrite.captured[0], encryptionPassword);
+        expect(decryptedData, equals(jsonEncode(<String, String>{})));
       });
     });
 
     group('clearDocument', () {
       test('should clear the contents of a document', () async {
         await storage.init(path);
-        when(mockFile.readAsString()).thenAnswer((_) async => jsonEncode({key: value}));
+        when(mockFile.readAsString()).thenAnswer((_) async => jsonEncode(<String, String>{key: value}));
 
         await storage.clearDocument(docName);
 
-        verify(mockFile.writeAsString(jsonEncode({}))).called(1);
+        verify(mockFile.writeAsString(jsonEncode(<String, String>{}))).called(1);
       });
 
       test('should throw an exception if storage is not initialized', () async {
@@ -223,16 +224,16 @@ void main() {
       });
 
       test('should clear an encrypted document if encryptionPassword is provided', () async {
-        final jsonData = jsonEncode({key: value});
-        final encryptedData = storage.encodeDocument(docName: docName, data: jsonData, encryptionPassword: encryptionPassword);
+        final String jsonData = jsonEncode(<String, String>{key: value});
+        final String encryptedData = storage.encodeDocument(docName: docName, data: jsonData, encryptionPassword: encryptionPassword);
 
         await storage.init(path);
         when(mockFile.readAsString()).thenAnswer((_) async => encryptedData);
 
         await storage.clearDocument(docName);
-        final capturedWrite = verify(mockFile.writeAsString(captureAny));
-        final decryptedData = storage.decodeDocument(docName, capturedWrite.captured[0], encryptionPassword);
-        expect(decryptedData, equals(jsonEncode({})));
+        final VerificationResult capturedWrite = verify(mockFile.writeAsString(captureAny));
+        final String decryptedData = storage.decodeDocument(docName, capturedWrite.captured[0], encryptionPassword);
+        expect(decryptedData, equals(jsonEncode(<String, String>{})));
       });
     });
 
@@ -251,8 +252,8 @@ void main() {
       });
 
       test('should delete an encrypted document if encryptionPassword is provided', () async {
-        final jsonData = jsonEncode({key: value});
-        final encryptedData = storage.encodeDocument(docName: docName, data: jsonData, encryptionPassword: encryptionPassword);
+        final String jsonData = jsonEncode(<String, String>{key: value});
+        final String encryptedData = storage.encodeDocument(docName: docName, data: jsonData, encryptionPassword: encryptionPassword);
 
         await storage.init(path);
         when(mockFile.readAsString()).thenAnswer((_) async => encryptedData);
@@ -267,19 +268,19 @@ void main() {
     group('getKeys', () {
       test('should return all keys from a document', () async {
         await storage.init(path);
-        final documentData = {key: value, 'anotherKey': 'anotherValue'};
+        final Map<String, String> documentData = <String, String>{key: value, 'anotherKey': 'anotherValue'};
         when(mockFile.readAsString()).thenAnswer((_) async => jsonEncode(documentData));
 
-        final keys = await storage.getKeys(docName);
+        final List<String> keys = await storage.getKeys(docName);
 
         expect(keys, containsAll(documentData.keys));
       });
 
       test('should return an empty list if the document is empty', () async {
         await storage.init(path);
-        when(mockFile.readAsString()).thenAnswer((_) async => jsonEncode({}));
+        when(mockFile.readAsString()).thenAnswer((_) async => jsonEncode(<String, String>{}));
 
-        final keys = await storage.getKeys(docName);
+        final List<String> keys = await storage.getKeys(docName);
 
         expect(keys, isEmpty);
       });
@@ -289,14 +290,14 @@ void main() {
       });
 
       test('should return keys from an encrypted document if encryptionPassword is provided', () async {
-        final documentData = {key: value, 'anotherKey': 'anotherValue'};
-        final jsonData = jsonEncode(documentData);
-        final encryptedData = storage.encodeDocument(docName: docName, data: jsonData, encryptionPassword: encryptionPassword);
+        final Map<String, String> documentData = <String, String>{key: value, 'anotherKey': 'anotherValue'};
+        final String jsonData = jsonEncode(documentData);
+        final String encryptedData = storage.encodeDocument(docName: docName, data: jsonData, encryptionPassword: encryptionPassword);
 
         await storage.init(path);
         when(mockFile.readAsString()).thenAnswer((_) async => encryptedData);
 
-        final keys = await storage.getKeys(docName, encryptionPassword: encryptionPassword);
+        final List<String> keys = await storage.getKeys(docName, encryptionPassword: encryptionPassword);
 
         expect(keys, containsAll(documentData.keys));
       });
@@ -305,18 +306,18 @@ void main() {
     group('batch', () {
       test('should perform batch operations on a document', () async {
         await storage.init(path);
-        when(mockFile.readAsString()).thenAnswer((_) async => jsonEncode({key: value}));
+        when(mockFile.readAsString()).thenAnswer((_) async => jsonEncode(<String, String>{key: value}));
 
         await storage.batch(
           docName: docName,
-          operations: (batch) {
+          operations: (BatchOperation batch) {
             batch.write('newKey', 'newValue');
             batch.remove(key);
           },
         );
 
-        final capturedWrite = verify(mockFile.writeAsString(captureAny)).captured.single;
-        final updatedDocument = jsonDecode(capturedWrite) as Map<String, dynamic>;
+        final String capturedWrite = verify(mockFile.writeAsString(captureAny)).captured.single;
+        final Map<String, dynamic> updatedDocument = jsonDecode(capturedWrite) as Map<String, dynamic>;
 
         expect(updatedDocument.containsKey('newKey'), isTrue);
         expect(updatedDocument['newKey'], equals('newValue'));
@@ -324,28 +325,28 @@ void main() {
       });
 
       test('should throw an exception if storage is not initialized', () async {
-        expect(() async => await storage.batch(docName: docName, operations: (batch) {}), throwsA(isA<StateError>()));
+        expect(() async => await storage.batch(docName: docName, operations: (BatchOperation batch) {}), throwsA(isA<StateError>()));
       });
 
       test('should handle encrypted documents during batch operations', () async {
-        final jsonData = jsonEncode({key: value});
-        final encryptedData = storage.encodeDocument(docName: docName, data: jsonData, encryptionPassword: encryptionPassword);
+        final String jsonData = jsonEncode(<String, String>{key: value});
+        final String encryptedData = storage.encodeDocument(docName: docName, data: jsonData, encryptionPassword: encryptionPassword);
 
         await storage.init(path);
         when(mockFile.readAsString()).thenAnswer((_) async => encryptedData);
 
         await storage.batch(
           docName: docName,
-          operations: (batch) {
+          operations: (BatchOperation batch) {
             batch.write('newKey', 'newValue');
             batch.remove(key);
           },
           encryptionPassword: encryptionPassword,
         );
 
-        final capturedWrite = verify(mockFile.writeAsString(captureAny)).captured.single;
-        final decryptedData = storage.decodeDocument(docName, capturedWrite, encryptionPassword);
-        final updatedDocument = jsonDecode(decryptedData) as Map<String, dynamic>;
+        final String capturedWrite = verify(mockFile.writeAsString(captureAny)).captured.single;
+        final String decryptedData = storage.decodeDocument(docName, capturedWrite, encryptionPassword);
+        final Map<String, dynamic> updatedDocument = jsonDecode(decryptedData) as Map<String, dynamic>;
 
         expect(updatedDocument.containsKey('newKey'), isTrue);
         expect(updatedDocument['newKey'], equals('newValue'));

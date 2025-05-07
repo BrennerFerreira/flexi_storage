@@ -10,11 +10,11 @@ void main() {
     });
 
     test('executes actions sequentially', () async {
-      final results = <int>[];
+      final List<int> results = <int>[];
 
-      await Future.wait([
+      await Future.wait<void>(<Future<void>>[
         storageLock.synchronized(() async {
-          await Future.delayed(Duration(milliseconds: 100));
+          await Future<void>.delayed(const Duration(milliseconds: 100));
           results.add(1);
         }),
         storageLock.synchronized(() async {
@@ -22,11 +22,11 @@ void main() {
         }),
       ]);
 
-      expect(results, [1, 2]);
+      expect(results, <int>[1, 2]);
     });
 
     test('handles exceptions without deadlocking', () async {
-      final results = <int>[];
+      final List<int> results = <int>[];
 
       try {
         await storageLock.synchronized(() async {
@@ -41,7 +41,7 @@ void main() {
         results.add(2);
       });
 
-      expect(results, [1, 2]);
+      expect(results, <int>[1, 2]);
     });
   });
 }

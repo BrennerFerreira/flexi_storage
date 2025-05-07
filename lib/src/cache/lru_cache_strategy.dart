@@ -16,10 +16,10 @@ class LRUCacheStrategy<K, V> extends CacheStrategy<K, V> {
   final int capacity;
 
   /// Internal map to store cache items.
-  final _cache = <K, V>{};
+  final Map<K, V> _cache = <K, V>{};
 
   /// List to track the order of key accesses.
-  final _accessOrder = <K>[];
+  final List<K> _accessOrder = <K>[];
 
   /// Creates a new instance of [LRUCacheStrategy].
   ///
@@ -45,7 +45,7 @@ class LRUCacheStrategy<K, V> extends CacheStrategy<K, V> {
       _accessOrder.remove(key);
     } else if (_cache.length >= capacity) {
       // Remove least recently used item
-      final lruKey = _accessOrder.removeAt(0);
+      final K lruKey = _accessOrder.removeAt(0);
       _cache.remove(lruKey);
     }
 

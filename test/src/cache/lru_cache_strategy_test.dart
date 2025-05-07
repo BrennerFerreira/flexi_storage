@@ -6,7 +6,7 @@ void main() {
     late LRUCacheStrategy<String, String> cache;
 
     setUp(() {
-      cache = LRUCacheStrategy(3); // Initialize with a capacity of 3
+      cache = LRUCacheStrategy<String, String>(3); // Initialize with a capacity of 3
     });
 
     test('should store and retrieve values', () {

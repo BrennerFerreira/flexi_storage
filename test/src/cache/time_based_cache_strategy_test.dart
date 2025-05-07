@@ -6,7 +6,7 @@ void main() {
     late TimeBasedCacheStrategy<String, String> cache;
 
     setUp(() {
-      cache = TimeBasedCacheStrategy(ttl: Duration(seconds: 2)); // Initialize with a TTL of 2 seconds
+      cache = TimeBasedCacheStrategy<String, String>(ttl: const Duration(seconds: 2)); // Initialize with a TTL of 2 seconds
     });
 
     test('should store and retrieve values within TTL', () async {
@@ -16,7 +16,7 @@ void main() {
 
     test('should return null for expired keys', () async {
       cache.write('key1', 'value1');
-      await Future.delayed(Duration(seconds: 3)); // Wait for TTL to expire
+      await Future<void>.delayed(const Duration(seconds: 3)); // Wait for TTL to expire
       expect(cache.read('key1'), isNull);
     });
 
@@ -36,7 +36,7 @@ void main() {
 
     test('should not return expired keys when checking existence', () async {
       cache.write('key1', 'value1');
-      await Future.delayed(Duration(seconds: 3)); // Wait for TTL to expire
+      await Future<void>.delayed(const Duration(seconds: 3)); // Wait for TTL to expire
       expect(cache.hasKey('key1'), isFalse);
     });
   });
