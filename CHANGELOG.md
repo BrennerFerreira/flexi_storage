@@ -11,3 +11,7 @@
 ## 1.0.1
 
 - Update automated publishing to pub.dev
+
+## 1.0.1+1
+
+- Fix publish environment key
