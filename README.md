@@ -10,11 +10,12 @@
 
 ## Features
 
-- Store, retrieve, and manage data using string keys.
-- Optional AES encryption for secure data storage.
-- In-memory caching with customizable strategies (default: LRU).
-- Thread-safe operations with document-level locking.
-- Cross-platform support (web, mobile, and desktop).
+- 🗂️ Store, retrieve, and manage data using string keys.
+- 🔒 Optional AES encryption for secure data storage.
+- 🚀 In-memory caching with customizable strategies.
+- 🔐 Thread-safe operations with document-level locking.
+- 🌍 Cross-platform support (web, mobile, and desktop).
+- 🛠️ Written in Dart, so no native code headaches!
 
 ## Installation
 
