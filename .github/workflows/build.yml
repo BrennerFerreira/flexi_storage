@@ -22,10 +22,10 @@ jobs:
           sdk: stable
 
       - name: Install dependencies
-        run: dart pub get
+        run: flutter pub get
 
       - name: Run tests
-        run: dart test
+        run: flutter test
 
       - name: Analyze code
-        run: dart analyze
+        run: flutter analyze
